@@ -1,4 +1,4 @@
-name: Backend CI
+name: Backend Continuous Integration
 
 on:
   pull_request:
@@ -19,12 +19,12 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: |
-          cd backend
+          cd starter/backend
           pip install -r requirements.txt
           pip install pylint
       - name: Run lint
         run: |
-          cd backend
+          cd starter/backend
           pylint app
 
   test:
@@ -37,11 +37,11 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: |
-          cd backend
+          cd starter/backend
           pip install -r requirements.txt
       - name: Run tests
         run: |
-          cd backend
+          cd starter/backend
           pytest
 
   build:
@@ -53,5 +53,5 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Build Docker image
         run: |
-          cd backend
+          cd starter/backend
           docker build -t backend-app:${{ github.sha }} .
