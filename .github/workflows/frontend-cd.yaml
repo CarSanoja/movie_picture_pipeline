@@ -84,7 +84,7 @@ jobs:
         run: |
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
           export KUBECONFIG=kubeconfig
-          aws eks update-kubeconfig --region us-east-1 --name cluster-name
+          aws eks update-kubeconfig --region us-east-1 --name cluster
 
       - name: Update Kubernetes manifests with kustomize
         run: |
