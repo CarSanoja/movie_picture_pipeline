@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - 'starter/backend/**'
   workflow_dispatch:
 
 jobs:
@@ -21,11 +21,11 @@ jobs:
         run: pip install pipenv
       - name: Install dependencies
         run: |
-          cd backend
+          cd starter/backend
           pipenv install
       - name: Run lint
         run: |
-          cd backend
+          cd starter/backend
           pipenv run lint
 
   test:
@@ -41,11 +41,11 @@ jobs:
         run: pip install pipenv
       - name: Install dependencies
         run: |
-          cd backend
+          cd starter/backend
           pipenv install
       - name: Run tests
         run: |
-          cd backend
+          cd starter/backend
           pipenv run test
 
   build:
@@ -57,7 +57,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       - name: Build and tag Docker image
         run: |
-          cd backend
+          cd starter/backend
           docker build -t 333452229479.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.sha }} .
       - name: Push Docker image to Amazon ECR
         run: |
@@ -73,9 +73,9 @@ jobs:
           export KUBECONFIG=kubeconfig
       - name: Update Kubernetes manifests with kustomize
         run: |
-          cd backend/k8s
+          cd starter/backend/k8s
           kustomize edit set image backend=333452229479.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.sha }}
       - name: Deploy to Kubernetes
         run: |
-          cd backend/k8s
+          cd starter/backend/k8s
           kustomize build | kubectl apply -f -

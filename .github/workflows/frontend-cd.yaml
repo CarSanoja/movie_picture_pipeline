@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - 'starter/frontend/**'
   workflow_dispatch:
 
 jobs:
@@ -19,11 +19,11 @@ jobs:
           node-version: 16
       - name: Install dependencies
         run: |
-          cd frontend
+          cd starter/frontend
           npm ci
       - name: Run ESLint
         run: |
-          cd frontend
+          cd starter/frontend
           npm run lint
 
   test:
@@ -37,13 +37,13 @@ jobs:
           node-version: 16
       - name: Install dependencies
         run: |
-          cd frontend
+          cd starter/frontend
           npm ci
       - name: Run tests
         env:
           CI: true
         run: |
-          cd frontend
+          cd starter/frontend
           npm test
 
   build:
@@ -55,7 +55,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       - name: Build and tag Docker image
         run: |
-          cd frontend
+          cd starter/frontend
           docker build \
             --build-arg REACT_APP_MOVIE_API_URL=http://localhost:5000 \
             -t 333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }} .
@@ -73,9 +73,9 @@ jobs:
           export KUBECONFIG=kubeconfig
       - name: Update Kubernetes manifests with kustomize
         run: |
-          cd frontend/k8s
+          cd starter/frontend/k8s
           kustomize edit set image frontend=333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }}
       - name: Deploy to Kubernetes
         run: |
-          cd frontend/k8s
+          cd starter/frontend/k8s
           kustomize build | kubectl apply -f -
