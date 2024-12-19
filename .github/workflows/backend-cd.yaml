@@ -55,6 +55,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
+        env:
+          AWS_REGION: us-east-1  # Asegúrate de reemplazar con tu región de AWS
       - name: Build and tag Docker image
         run: |
           cd starter/backend
