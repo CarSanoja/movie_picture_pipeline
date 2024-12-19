@@ -57,6 +57,8 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
         env:
           AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Build and tag Docker image
         run: |
           cd starter/backend
@@ -64,6 +66,7 @@ jobs:
       - name: Push Docker image to Amazon ECR
         run: |
           docker push 333452229479.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.sha }}
+
 
   deploy:
     runs-on: ubuntu-latest
