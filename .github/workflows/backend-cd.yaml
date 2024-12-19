@@ -26,7 +26,7 @@ jobs:
       - name: Run lint
         run: |
           cd starter/backend
-          pipenv run lint
+          pipenv run pylint movies
 
   test:
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
       - name: Run tests
         run: |
           cd starter/backend
-          pipenv run test
+          pipenv run pytest
 
   build:
     runs-on: ubuntu-latest
@@ -73,8 +73,7 @@ jobs:
     steps:
       - name: Configure kubectl
         run: |
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
-          export KUBECONFIG=kubeconfig
+          aws eks update-kubeconfig --region us-east-1 --name cluster
       - name: Update Kubernetes manifests with kustomize
         run: |
           cd starter/backend/k8s
