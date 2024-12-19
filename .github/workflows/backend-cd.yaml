@@ -1,11 +1,11 @@
-name: Frontend Continuous Deployment
+name: Backend Continuous Deployment
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - 'starter/backend/**'
   workflow_dispatch:
 
 jobs:
@@ -13,38 +13,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
         with:
-          node-version: 16
+          python-version: 3.9
+      - name: Install Pipenv
+        run: pip install pipenv
       - name: Install dependencies
         run: |
-          cd frontend
-          npm ci
-      - name: Run ESLint
+          cd backend
+          pipenv install
+      - name: Run lint
         run: |
-          cd frontend
-          npm run lint
+          cd backend
+          pipenv run lint
 
   test:
     runs-on: ubuntu-latest
     needs: [lint]
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
         with:
-          node-version: 16
+          python-version: 3.9
+      - name: Install Pipenv
+        run: pip install pipenv
       - name: Install dependencies
         run: |
-          cd frontend
-          npm ci
+          cd backend
+          pipenv install
       - name: Run tests
-        env:
-          CI: true
         run: |
-          cd frontend
-          npm test
+          cd backend
+          pipenv run test
 
   build:
     runs-on: ubuntu-latest
@@ -55,13 +57,11 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       - name: Build and tag Docker image
         run: |
-          cd frontend
-          docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=http://localhost:5000 \
-            -t 333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }} .
+          cd backend
+          docker build -t 333452229479.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.sha }} .
       - name: Push Docker image to Amazon ECR
         run: |
-          docker push 333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }}
+          docker push 333452229479.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -73,9 +73,9 @@ jobs:
           export KUBECONFIG=kubeconfig
       - name: Update Kubernetes manifests with kustomize
         run: |
-          cd frontend/k8s
-          kustomize edit set image frontend=333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }}
+          cd starter/backend/k8s
+          kustomize edit set image backend=333452229479.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.sha }}
       - name: Deploy to Kubernetes
         run: |
-          cd frontend/k8s
+          cd starter/backend/k8s
           kustomize build | kubectl apply -f -
