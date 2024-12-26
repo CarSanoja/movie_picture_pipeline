@@ -14,23 +14,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
 
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('starter/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Install dependencies
         run: |
           cd starter/frontend
-          npm install
+          npm ci
 
       - name: Run ESLint
         run: |
@@ -39,28 +39,32 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: [lint]
     steps:
       - uses: actions/checkout@v3
+
+      # Cache dependencies step
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
 
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('starter/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Install dependencies
         run: |
           cd starter/frontend
-          npm install
+          npm ci
 
       - name: Run tests
+        env:
+          CI: true
         run: |
           cd starter/frontend
           npm test
@@ -70,27 +74,31 @@ jobs:
     needs: [lint, test]
     steps:
       - uses: actions/checkout@v3
+      
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
 
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('starter/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Install dependencies
         run: |
           cd starter/frontend
-          npm install
+          npm ci
 
       - name: Build the application
         run: |
           cd starter/frontend
           npm run build
 
+      - name: Build Docker Image
+        run: |
+          cd starter/frontend
+          docker build -t mp-frontend-ci:${{ github.sha }} .

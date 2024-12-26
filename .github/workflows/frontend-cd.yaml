@@ -14,18 +14,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
-
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('starter/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: |
@@ -43,18 +43,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
-
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('starter/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: |
@@ -78,7 +78,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
         env:
           AWS_REGION: us-east-1
-          # Access keys must come from GitHub Secrets
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -86,7 +85,7 @@ jobs:
         run: |
           cd starter/frontend
           docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=https://api.example.com \
+            --build-arg REACT_APP_MOVIE_API_URL=http://backend-service.default.svc.cluster.local:5000 \
             -t 333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }} .
 
       - name: Push Docker image to Amazon ECR
@@ -110,10 +109,6 @@ jobs:
         run: |
           aws eks update-kubeconfig --region us-east-1 --name cluster
 
-      - name: Test Kubernetes connection
-        run: |
-          kubectl get nodes
-
       - name: Update Kubernetes manifests with kustomize
         run: |
           cd starter/frontend/k8s
@@ -122,9 +117,9 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           cd starter/frontend/k8s
-          kustomize build | kubectl apply --validate=false -f -
-          
-      - name: Retrieve Frontend Service URL
+          kustomize build | kubectl apply -f -
+
+      - name: Print EKS Services
         run: |
-          FRONTEND_URL=$(kubectl get service frontend -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          echo "Frontend Service URL: http://${FRONTEND_URL}"
+          echo "Services in EKS cluster:"
+          kubectl get svc -A

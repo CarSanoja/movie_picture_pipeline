@@ -13,30 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
           python-version: '3.10'
-
-      - name: Cache Pipenv
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('starter/backend/Pipfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pipenv-
-
       - name: Install Pipenv
         run: pip install pipenv
-
       - name: Install dependencies
         run: |
           cd starter/backend
           pipenv install --dev
-
       - name: Run lint
         run: |
           cd starter/backend
@@ -47,30 +33,16 @@ jobs:
     needs: [lint]
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
           python-version: '3.10'
-
-      - name: Cache Pipenv
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('starter/backend/Pipfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pipenv-
-
       - name: Install Pipenv
         run: pip install pipenv
-
       - name: Install dependencies
         run: |
           cd starter/backend
           pipenv install --dev
-
       - name: Run tests
         run: |
           cd starter/backend
@@ -81,19 +53,16 @@ jobs:
     needs: [test]
     steps:
       - uses: actions/checkout@v3
-
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
         env:
           AWS_REGION: us-east-1
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
       - name: Build and tag Docker image
         run: |
           cd starter/backend
           docker build -t 333452229479.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.sha }} .
-
       - name: Push Docker image to Amazon ECR
         run: |
           docker push 333452229479.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.sha }}
@@ -129,7 +98,7 @@ jobs:
           cd starter/backend/k8s
           kustomize build | kubectl apply --validate=false -f -
 
-      - name: Retrieve Backend Service URL
+      - name: Print EKS Services
         run: |
-          BACKEND_URL=$(kubectl get service backend -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          echo "Backend Service URL: http://${BACKEND_URL}"
+          echo "Services in EKS cluster:"
+          kubectl get svc -A
