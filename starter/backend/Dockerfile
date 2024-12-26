@@ -25,5 +25,4 @@ RUN mkdir -p /var/www/app
 
 USER app
 
-# Cambiamos el comando para que uwsgi encuentre el módulo
-CMD ["uwsgi", "--http", ":5000", "--master", "--enable-threads", "--chdir", "/app", "--wsgi-file", "__init__.py", "--callable", "app"]
+CMD ["uwsgi", "--http", ":5000", "--master", "--enable-threads", "--pythonpath", "/app", "--module", "__init__:app"]
