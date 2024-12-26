@@ -13,14 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
+
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('starter/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: |
           cd starter/frontend
           npm ci
+
       - name: Run ESLint
         run: |
           cd starter/frontend
@@ -31,14 +42,25 @@ jobs:
     needs: [lint]
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
+
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('starter/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: |
           cd starter/frontend
           npm ci
+
       - name: Run tests
         env:
           CI: true
@@ -51,18 +73,22 @@ jobs:
     needs: [test]
     steps:
       - uses: actions/checkout@v3
+
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
         env:
           AWS_REGION: us-east-1
+          # Access keys must come from GitHub Secrets
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       - name: Build and tag Docker image
         run: |
           cd starter/frontend
           docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=http://localhost:5000 \
+            --build-arg REACT_APP_MOVIE_API_URL=https://api.example.com \
             -t 333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }} .
+
       - name: Push Docker image to Amazon ECR
         run: |
           docker push 333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }}
@@ -97,5 +123,3 @@ jobs:
         run: |
           cd starter/frontend/k8s
           kustomize build | kubectl apply --validate=false -f -
-
-
