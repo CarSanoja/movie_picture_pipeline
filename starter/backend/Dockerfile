@@ -12,7 +12,8 @@ RUN apk update && \
   linux-headers \
   openssl \
   libffi-dev \
-  && pip install pipenv
+  && pip install pipenv \
+  && pip install uwsgi
 
 RUN mkdir -p /var/www/app && mkdir /app
 
