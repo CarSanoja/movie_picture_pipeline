@@ -85,7 +85,7 @@ jobs:
         run: |
           cd starter/frontend
           docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=http://backend-service.default.svc.cluster.local:5000 \
+            --build-arg REACT_APP_MOVIE_API_URL=ab2c612e0caa141c1bbcb8e9f9869cd9-1277564201.us-east-1.elb.amazonaws.com \
             -t 333452229479.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.sha }} .
 
       - name: Push Docker image to Amazon ECR
