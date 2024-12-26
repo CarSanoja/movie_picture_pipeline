@@ -1,5 +1,7 @@
 FROM public.ecr.aws/docker/library/python:3.10-alpine
 ENV FLASK_RUN_HOST=0.0.0.0
+ENV PYTHONPATH=/app
+
 WORKDIR /app
 
 RUN adduser -u 1000 -D app
@@ -23,4 +25,5 @@ RUN mkdir -p /var/www/app
 
 USER app
 
-CMD ["uwsgi", "--http", ":5000", "--master", "--enable-threads", "--mount", "/=app:app"]
+# Cambiamos el comando para que uwsgi encuentre el módulo
+CMD ["uwsgi", "--http", ":5000", "--master", "--enable-threads", "--chdir", "/app", "--wsgi-file", "__init__.py", "--callable", "app"]
