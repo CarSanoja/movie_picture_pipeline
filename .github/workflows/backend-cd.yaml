@@ -128,3 +128,8 @@ jobs:
         run: |
           cd starter/backend/k8s
           kustomize build | kubectl apply --validate=false -f -
+
+      - name: Retrieve Backend Service URL
+        run: |
+          BACKEND_URL=$(kubectl get service backend -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "Backend Service URL: http://${BACKEND_URL}"

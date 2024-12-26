@@ -123,3 +123,8 @@ jobs:
         run: |
           cd starter/frontend/k8s
           kustomize build | kubectl apply --validate=false -f -
+          
+      - name: Retrieve Frontend Service URL
+        run: |
+          FRONTEND_URL=$(kubectl get service frontend -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "Frontend Service URL: http://${FRONTEND_URL}"
