@@ -25,4 +25,4 @@ RUN mkdir -p /var/www/app
 
 USER app
 
-CMD ["uwsgi", "--http", ":5000", "--master", "--enable-threads", "--pythonpath", "/app", "--module", "__init__:app"]
+CMD ["uwsgi", "--http", ":5000", "--master", "--enable-threads", "--pythonpath", "/app", "--module", "app:app"]
